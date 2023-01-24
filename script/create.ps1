@@ -1,7 +1,15 @@
 #--init
-$CreateCSV = Import-Csv -Path "C:\Users\be.fernandez\Desktop\PowerShellBootcamp\ClassAfternoon-Toolbox\script\create.csv"
+$global:RootPath = split-path -parent $MyInvocation.MyCommand.Definition
+$CreateCSV = Import-Csv -Path "$RootPath\create.csv"
+Start-Transcript -Path "$RootPath\Create_localtime_$(Get-Date -Format "MMddyyyyHHmm").txt" | Out-Null
+
+$json = Get-Content "$RootPath\config.json" -Raw | ConvertFrom-Json 
+
+Write-Output "`n`n------------------BEGIN-------------------------"
+Write-Output "$(Get-Date -Format "HH:mm")[Log]: Starting init"
 
 #--transform
+Write-Output "$(Get-Date -Format "HH:mm")[Log]: Transforming data"
 $PurposeItem = $CreateCSV | Select-Object -ExpandProperty Purpose
 $ArrayMembersItem = ($CreateCSV | select -ExpandProperty Members) -split (',')
 
@@ -9,20 +17,23 @@ $item = $CreateCSV | select -ExpandProperty Name
 $TrimedItem = ($item.TrimEnd()).TrimStart() #removed whitespaces
 $NoCharsItem = $TrimedItem  -replace '[\W]', '' #removed special char
 $LowerCasedItem = $NoCharsItem.ToLower() #convert to lowercasing
-$AppendedItem = "GRS_" + $LowerCasedItem #append prefix
+$AppendedItem = $json.AliasPrefix + $LowerCasedItem #append prefix
+
 #--assembly
+Write-Output "$(Get-Date -Format "HH:mm")[Log]: Assembling output"
 $AssembledObj = [PSCustomObject]@{
     Name = $NoCharsItem
-    DisplayName  = "GRS " + $NoCharsItem
-    PrimarySmtpAddress  = $AppendedItem + "@solutionautdev.onmicrosoft.com"
-    Description = "`n Created at: G07PHXNWES00293" + `
-    "`n Created by: be.fernandez" + `
-    "`n Created on: 10/18/2022 14:06:41" + `
+    DisplayName  = $json.DisplayNamePrefix + $NoCharsItem
+    PrimarySmtpAddress  = $AppendedItem + "@" +$json.DomainName
+    Description = "`n Created at: $env:COMPUTERNAME" + `
+    "`n Created by: $env:UserName" + `
+    "`n Created on: ($(Get-Date))" + `
     "`n`n=========`n" + $PurposeItem
 
 }
 
 #--output
+Write-Output "`n------------------OUTPUT-------------------------"
 Write-Host "`n`n Name:" -foregroundcolor Cyan
 $AssembledObj.Name
 Write-Host "`n`n DisplayName:" -foregroundcolor Cyan
@@ -34,3 +45,4 @@ $AssembledObj.Description
 
 Write-Host "`n`n Members:" -foregroundcolor Cyan
 $ArrayMembersItem
+
