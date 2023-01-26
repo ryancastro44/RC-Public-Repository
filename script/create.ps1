@@ -28,10 +28,23 @@ try{
         #--output
         $counter++
         Write-Output "`n------------------OUTPUT($counter)-------------------------"
-        foreach ($currentItemName in $(@("Name","DisplayName","PrimarySmtpAddress","Description","Members")) ) {
-            Write-Host "`n`n $($currentItemName):" -foregroundcolor Cyan
-            $AssembledObj.$($currentItemName)
+        foreach ($currentItemName in $(@("Members","DisplayName","PrimarySmtpAddress","Description","Name")) ) { 
+            #--if     
+            if ($currentItemName -eq "Members")
+            {
+                Write-Host "`n`n $($currentItemName):" -foregroundcolor Cyan
+                if ($($AssembledObj.Members).length -gt 0){
+                    $AssembledObj.$($currentItemName) 
+                }else{
+                    Write-Host "No members found" -foregroundcolor Red
+                }
+            }else{
+                Write-Host "`n`n $($currentItemName):" -foregroundcolor Cyan
+                $AssembledObj.$($currentItemName) 
+            }
         }
+      
+
     }
 
     Write-Output "`n`n------------------END-------------------------"
