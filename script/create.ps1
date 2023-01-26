@@ -3,6 +3,48 @@ try{
     $global:ErrorActionPreference = "Stop"
     $global:RootPath = split-path -parent $MyInvocation.MyCommand.Definition
     Start-Transcript -Path "$RootPath\Create_localtime_$(Get-Date -Format "MMddyyyyHHmm").txt" | Out-Null
+
+    <#
+    function Get-Kill {
+        param (
+            $Mode
+        )
+        if ($Mode -eq "Hard") {
+            $e = $_.Exception.GetType().FullName
+            $line = $_.InvocationInfo.ScriptLineNumber
+            $msg = $_.Exception.Message
+            Write-Output "$(Get-Date -Format "HH:mm")[Error]: Initialization failed at line [$line] due [$e] `n`nwith details `n`n[$msg]`n"
+            Write-Output "`n`n------------------END-------------------------"
+            Stop-Transcript | Out-Null
+            exit
+        }else{
+            Write-Output "`n`n------------------END-------------------------"
+            Stop-Transcript | Out-Null 
+        }
+        
+    }
+    #>
+   
+    Function Get-Kill{
+        param($Mode)
+        switch ($Mode) {
+            "Hard" {  
+                $e = $Error[0].Exception.GetType().FullName
+                $line = $Error[0].InvocationInfo.ScriptLineNumber
+                $msg = $Error[0].Exception.Message
+                Write-Output "$(Get-Date -Format "HH:mm")[Error]: Initialization failed at line [$line] due [$e] `n`nwith details `n`n[$msg]`n"
+                Write-Output "`n`n------------------END-------------------------"
+                Stop-Transcript | Out-Null
+                exit      
+            }
+            default {
+                Write-Output "`n`n------------------END-------------------------"
+                Stop-Transcript | Out-Null
+            }
+        }
+
+    }
+   
     $json = Get-Content "$RootPath\config.json" -Raw | ConvertFrom-Json 
     $CreateCSV = Import-Csv -Path "$RootPath\create.csv"
     $counter = 0
@@ -41,17 +83,10 @@ try{
 
     }
 
-    Write-Output "`n`n------------------END-------------------------"
-    Stop-Transcript | Out-Null
-
+    Get-Kill
 }
 catch{
-    $e = $_.Exception.GetType().FullName
-    $line = $_.InvocationInfo.ScriptLineNumber
-    $msg = $_.Exception.Message
-    Write-Output "$(Get-Date -Format "HH:mm")[Error]: Initialization failed at line [$line] due [$e] `n`nwith details `n`n[$msg]`n"
-    Stop-Transcript | Out-Null
-    exit
+    Get-Kill -Mode "Hard"
 }
 
 
