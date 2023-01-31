@@ -1,10 +1,16 @@
-try{
+try {
     #--init
     $global:ErrorActionPreference = "Stop"
     $global:RootPath = split-path -parent $MyInvocation.MyCommand.Definition
-    Start-Transcript -Path "$RootPath\Create_localtime_$(Get-Date -Format "MMddyyyyHHmm").txt" | Out-Null
+    $json = Get-Content "$RootPath\config.json" -Raw | ConvertFrom-Json 
+    $counter = 0 
 
-    <#
+    function ClearCreateCSV {
+        Remove-Item -Path "$RootPath\create.csv"
+        New-Item $RootPath\create.csv -ItemType File | Out-Null
+        Set-Content $RootPath\create.csv 'Name,Purpose,Members'    
+    }
+
     function Get-Kill {
         param (
             $Mode
@@ -16,47 +22,37 @@ try{
             Write-Output "$(Get-Date -Format "HH:mm")[Error]: Initialization failed at line [$line] due [$e] `n`nwith details `n`n[$msg]`n"
             Write-Output "`n`n------------------END-------------------------"
             Stop-Transcript | Out-Null
+            ClearCreateCSV
             exit
         }else{
             Write-Output "`n`n------------------END-------------------------"
-            Stop-Transcript | Out-Null 
+            Stop-Transcript | Out-Null
+            ClearCreateCSV
+            exit
         }
         
     }
-    #>
-   
-    Function Get-Kill{
-        param($Mode)
-        switch ($Mode) {
-            "Hard" {  
-                $e = $Error[0].Exception.GetType().FullName
-                $line = $Error[0].InvocationInfo.ScriptLineNumber
-                $msg = $Error[0].Exception.Message
-                Write-Output "$(Get-Date -Format "HH:mm")[Error]: Initialization failed at line [$line] due [$e] `n`nwith details `n`n[$msg]`n"
-                Write-Output "`n`n------------------END-------------------------"
-                Stop-Transcript | Out-Null
-                exit      
-            }
-            default {
-                Write-Output "`n`n------------------END-------------------------"
-                Stop-Transcript | Out-Null
-            }
-        }
 
+    function CheckCreateCSV {
+        $global:CreateCSV = Import-Csv -Path "$RootPath\create.csv"
+        if ($($CreateCSV.Name.Count) -gt 0) {
+            
+        }else{
+            Write-Output "`n------------------OUTPUT($counter)-------------------------"
+            Write-Host "CSV is empty (~_^)" -foregroundcolor Yellow
+            Get-Kill
+        }
     }
-   
-    $json = Get-Content "$RootPath\config.json" -Raw | ConvertFrom-Json 
-    $CreateCSV = Import-Csv -Path "$RootPath\create.csv"
-    $counter = 0
+
+    Start-Transcript -Path "$RootPath\Create_localtime_$(Get-Date -Format "MMddyyyyHHmm").txt" | Out-Null
     
     Write-Output "`n`n------------------BEGIN-------------------------"
-    Write-Output "$(Get-Date -Format "HH:mm")[Log]: Starting init"
-
+    Write-Output "$(Get-Date -Format "HH:mm")[Log]: Initialization success"
+    CheckCreateCSV
     foreach($c in $CreateCSV){
         #--transform
-        Write-Output "$(Get-Date -Format "HH:mm")[Log]: Transforming data"
+        Write-Output "`n$(Get-Date -Format "HH:mm")[Log]: Transforming data"
         $NoCharsItem = $(($($c.Name).TrimEnd()).TrimStart())  -replace '[\W]', '' #remove whitespace and special chars
-
         #--assembly
         Write-Output "$(Get-Date -Format "HH:mm")[Log]: Assembling output"
         $AssembledObj = [PSCustomObject]@{
@@ -66,27 +62,21 @@ try{
             Description = "`n Created at: " + $env:COMPUTERNAME + "`n Created by: " + $env:USERNAME + "`n Created on: "  + ($(Get-Date)) + "`n`n=========`n" + $c.Purpose
             Members = ($c.Members) -split (',') #turm members to array
         }
-
         #--output
         $counter++
         Write-Output "`n------------------OUTPUT($counter)-------------------------"
         foreach ($currentItemName in $(@("Name","DisplayName","PrimarySmtpAddress","Description","Members")) ) {
             Write-Host "`n`n $($currentItemName):" -foregroundcolor Cyan
-            $AssembledObj.$($currentItemName) 
+            $AssembledObj.$($currentItemName)
         }
-        #--if
-        if ($($AssembledObj.Members).length -gt 0){
-
+        if ($($AssembledObj.Members).length -gt 0) {
+            
         }else{
-            Write-Host "No members found" -foregroundcolor Red
+            Write-Host "No members found" -foregroundcolor Yellow
         }
-
     }
-
-    Get-Kill
+    Get-Kill 
 }
-catch{
+catch {
     Get-Kill -Mode "Hard"
 }
-
-
