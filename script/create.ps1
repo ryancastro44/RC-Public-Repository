@@ -3,7 +3,7 @@ function CreateDL {
     try {
         #--init
         $counter = 0 
-   
+    #Comment malala
         function CheckCreateCSV {
             $global:CreateCSV = Import-Csv -Path "$RootPath\create.csv"
             if ($($CreateCSV.Name.Count) -gt 0) {
