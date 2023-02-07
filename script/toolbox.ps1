@@ -37,6 +37,10 @@ try {
         
     }
     
+##FilePath
+    $file = (get-item 'C:\Users\RyanVincentC\Desktop\RC PowerShell BootCamp\ClassAfternoon-Toolbox\Images\output-onlinegiftools.gif')
+    $img = [System.Drawing.Image]::Fromfile($file)
+
     function global:ClearCreateCSV {
         Remove-Item -Path "$RootPath\create.csv"
         New-Item $RootPath\create.csv -ItemType File | Out-Null
@@ -63,8 +67,18 @@ try {
         ForeColor = $json.ToolUILabelColorDark
         BackColor = $json.ToolUIBackColorDark
         Text = "$($json.ToolTOAText)"
-    }
 
+    }
+    function Add-CheckBox ($CheckBox){
+    $CheckBox = New-Object System.Windows.Forms.CheckBox
+        $CheckBox.Location = New-Object System.Drawing.Point(100,240)
+        $Checkbox.Size = New-Object System.Drawing.Size(125,50)
+        $CheckBox.ForeColor = $json.ToolUILabelColor
+        $CheckBox.BackColor = $json.ToolUIBtnColor
+        $CheckBox.Text = 'Ignore next time' 
+
+
+    }  
 
     $btnStart = New-Object System.Windows.Forms.Button -Property @{
         Location = New-Object System.Drawing.Point(160,240)
@@ -135,8 +149,18 @@ try {
         Size = New-Object System.Drawing.Size(125,50)
         ForeColor = $json.ToolUILabelColor
         BackColor = $json.ToolUIBtnColor
-        Text = 'DELETE'      
+        Text = 'DELETE'     
+        
     }
+
+
+    $GifBackGround = new-object Windows.Forms.PictureBox
+    $GifBackGround.Location = New-Object System.Drawing.Size(0,10)
+    $GifBackGround.Size = New-Object System.Drawing.Size(500,500)
+    $GifBackGround.Image = $img
+    $form.controls.add($GifBackGround)
+
+    
 
     #---form-render
     $form.Controls.Add($lblTOA)
