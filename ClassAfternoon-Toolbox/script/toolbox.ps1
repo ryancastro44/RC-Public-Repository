@@ -14,6 +14,7 @@ try {
         $global:ErrorIcon = [System.Windows.MessageBoxImage]::Error
         $global:QButton = [System.Windows.MessageBoxImage]::Question
         $IconImage = New-Object System.Drawing.Icon("$RootPath\Tools_Icon.ico")
+        $GifBackGround = (Get-Item -Path "$RootPath\progress.gif")
     
     function global:Get-Kill {
         param (
@@ -38,7 +39,6 @@ try {
     }
     
 ##FilePath
-    $file = (get-item 'C:\Users\RyanVincentC\Desktop\RC PowerShell BootCamp\ClassAfternoon-Toolbox\script\progress.gif')
     $img = [System.Drawing.Image]::Fromfile($file)
     
 
