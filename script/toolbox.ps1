@@ -13,7 +13,8 @@ try {
         $global:WarningIcon = [System.Windows.MessageBoxImage]::Warning
         $global:ErrorIcon = [System.Windows.MessageBoxImage]::Error
         $global:QButton = [System.Windows.MessageBoxImage]::Question
-
+        $IconImage = New-Object System.Drawing.Icon("$RootPath\Tools_Icon.ico")
+        $GifBackGround = (Get-Item -Path "$RootPath\progress.gif")
     
     function global:Get-Kill {
         param (
@@ -38,8 +39,8 @@ try {
     }
     
 ##FilePath
-    $file = (get-item 'C:\Users\RyanVincentC\Desktop\RC PowerShell BootCamp\ClassAfternoon-Toolbox\Images\output-onlinegiftools.gif')
     $img = [System.Drawing.Image]::Fromfile($file)
+    
 
     function global:ClearCreateCSV {
         Remove-Item -Path "$RootPath\create.csv"
@@ -55,11 +56,13 @@ try {
     #--form
     #---form-assembly
     $form = New-Object Windows.Forms.Form -Property @{
+        Icon = $IconImage
         Size = New-Object System.Drawing.Size(485,460)
         Text = "$($json.ToolName) $($json.ToolVersion)"
         StartPosition = 'CenterScreen'
         BackColor = $json.ToolUIBackColor
         FormBorderStyle = 'Fixed3D'
+        
     }
     $lblTOA = New-Object System.Windows.Forms.Label -Property @{
         Location = New-Object System.Drawing.Point(85,50)
@@ -69,16 +72,13 @@ try {
         Text = "$($json.ToolTOAText)"
 
     }
-    function Add-CheckBox ($CheckBox){
-    $CheckBox = New-Object System.Windows.Forms.CheckBox
-        $CheckBox.Location = New-Object System.Drawing.Point(100,240)
-        $Checkbox.Size = New-Object System.Drawing.Size(125,50)
-        $CheckBox.ForeColor = $json.ToolUILabelColor
-        $CheckBox.BackColor = $json.ToolUIBtnColor
-        $CheckBox.Text = 'Ignore next time' 
 
-
-    }  
+    $CheckBox = New-Object System.Windows.Forms.Checkbox -Property @{
+        Location = New-Object System.Drawing.Point(85,200)
+        Size = New-Object System.Drawing.Size(400,30)
+        ForeColor = $json.ToolUILabelColorDark
+        Text = "Don't ask me again"
+    }
 
     $btnStart = New-Object System.Windows.Forms.Button -Property @{
         Location = New-Object System.Drawing.Point(160,240)
@@ -90,6 +90,11 @@ try {
 
     $btnStart.Add_Click({
         Write-Host "$(Get-Date -Format "HH:mm")[Log]: TOA confirm success"
+
+        if($CheckBox.Checked -eq $True){
+            $CheckBox.Hide()
+        }else{}
+    
         $btnStart.Hide()
         $lblTOA.Hide()
         $form.Controls.Add($shpDivider)
@@ -136,7 +141,19 @@ try {
         ForeColor = $json.ToolUILabelColor
         BackColor = $json.ToolUIBtnColor
         Text = 'READ'      
+
     }
+
+    $btnRead.Add_Click({
+        Write-Host "$(Get-Date -Format "HH:mm")[Log]: READ selected"
+        Import-Module "$RootPath\read.ps1" -Force
+        Write-Host "$(Get-Date -Format "HH:mm")[Log]: READ function imported"
+        Write-Host "`n`n$(Get-Date -Format "HH:mm")[Log]: READ function completed"
+        [System.Windows.MessageBox]::Show("DETAILS:$mem","$($json.ToolName) $($json.ToolVersion)",$OKButton,$InfoIcon)
+        
+    })
+
+    
     $btnUpdate = New-Object System.Windows.Forms.Button -Property @{
         Location = New-Object System.Drawing.Point(30,140)
         Size = New-Object System.Drawing.Size(125,50)
@@ -153,18 +170,20 @@ try {
         
     }
 
-
+   
     $GifBackGround = new-object Windows.Forms.PictureBox
-    $GifBackGround.Location = New-Object System.Drawing.Size(0,10)
-    $GifBackGround.Size = New-Object System.Drawing.Size(500,500)
+    $GifBackGround.Location = New-Object System.Drawing.point(250,290)
+    $GifBackGround.Size = New-Object System.Drawing.Size(400,500)
+    $GifBackGround.AutoSize = $true
     $GifBackGround.Image = $img
     $form.controls.add($GifBackGround)
 
     
-
     #---form-render
     $form.Controls.Add($lblTOA)
     $form.Controls.Add($btnStart)
+    $form.Controls.Add($CheckBox) 
+    
     $form.ShowDialog() | Out-Null
     
     Get-Kill 
